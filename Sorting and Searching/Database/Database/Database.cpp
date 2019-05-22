@@ -10,26 +10,33 @@
 
 #include "Database.h"
 
-Database::Database() {
+Table::Table() {
 	// with the read function implemented,
 	// blank Database objects can be created and used
 	// unlike with the other project done for class
+	for (int i = 0; data[i]; i++) {
+		data[i] = nullptr;
+	}
 }
 
-Database::Database(std::string **new_data) {
+Table::Table(std::string **new_data) {
 	data = new_data;
 }
 
-//void Database::read(const char *file) {
-void Database::read(const std::string &file) {
+Table::~Table() {
+	delete[] data;
+	delete[] found;
+}
+
+void Table::read(const std::string &file) {
 	std::ifstream input( file );
 
 	std::string buffer;
-	std::string* data;
+	std::string* person;
 
 	while (input >> buffer) {
-		data = split(buffer, ',');
-		// TODO figure out what to do with 'data' at this point
+		person = split(buffer, ',');
+		// TODO figure out what to do with 'person' at this point
 
 		//   this is where the dynamically sized array would come in handy
 		//   just using an array of size 1001 would work for now because we know
@@ -37,15 +44,15 @@ void Database::read(const std::string &file) {
 	}
 }
 
-std::ostream& Database::write(std::ostream &out) {
-	for (int i = 0; data[i]; i++) {
-		out << "Name: " << data[i][LAST_NAME_POS] << ", " << data[i][FIRST_NAME_POS]
-			<< "\nPhone Number: " << data[i][NUMBER_POS] << "\n\n";
+std::ostream& Table::operator<<(std::ostream &out) {
+	for (int i = 0; found[i]; i++) {
+		out << "Name: " << found[i][LAST_NAME_POS] << ", " << found[i][FIRST_NAME_POS]
+			<< "\nPhone Number: " << found[i][NUMBER_POS] << "\n\n";
 	}
 	return out;
 }
 
-void Database::sort(char field) {
+void Table::sort(char field) {
 	int pos;
 
 	if (field == 'n')
@@ -62,6 +69,7 @@ void Database::sort(char field) {
 	}
 }
 
+#if 0
 std::string* Database::search(const std::string &find) {
 	int c = find[0];
 	int pos;
@@ -92,27 +100,58 @@ std::string* Database::search(const std::string &find) {
 
 	return person;
 }
+#endif
 
-std::string* Database::split(const std::string &line, char delim) {
-	std::string* data = new std::string[FIELDS];
+void Table::search(const std::string &find) {
+	int c = find[0];
+
+	if (c > 47 && c < 58) {
+		sort('n');
+		bsearch(find, 0, size, NUMBER_POS);
+	}
+	else {
+		sort('f');
+		bsearch(find, 0, size, FIRST_NAME_POS);
+		sort('l');
+		bsearch(find, 0, size, LAST_NAME_POS);
+	}
+}
+
+std::string* Table::split(const std::string &line, char delim) {
+	std::string* person = new std::string[FIELDS];
 
 	int count = 0;
 	std::string temp = "";
 
 	for (int i = 0; i < line.size(); i++) {
 		if (line[i] == delim) {
-			data[count] = temp;
+			person[count] = temp;
 			temp = "";
 		}
 		else
 			temp += line[i];
 	}
 
-	return data;
+	return person;
 }
 
-void Database::swap(std::string *first, std::string *second) {
+void Table::swap(std::string *first, std::string *second) {
 	std::string *temp = first;
 	first = second;
 	second = temp;
+}
+
+void Table::bsearch(const std::string &find, int low, int high, int pos) {
+	int mid = (high + low) / 2;
+	
+	if (data[mid][pos] == find) { // TODO overload == operator to check for partial matches
+		// found[ size? ] = data[mid];
+		// scan nearby items for other matching searches ** new function **
+	}
+	else if (data[mid][pos] > find) {
+		bsearch(find, mid + 1, high, pos);
+	}
+	else if (data[mid][pos] < find) {
+		bsearch(find, low, mid - 1, pos);
+	}
 }

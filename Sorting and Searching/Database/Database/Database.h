@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 	File: Database.h
 	Author: Teke Byas
@@ -13,8 +15,6 @@
 		formatted to look like a table
 */
 
-#pragma once
-
 #include <iostream>
 #include <string>
 
@@ -24,21 +24,30 @@ const int FIRST_NAME_POS = 0;
 const int LAST_NAME_POS = 1;
 const int NUMBER_POS = 2;
 
-class Database {
+int size = 1000;
+
+class Table {
+	//std::string** data = new std::string[size][FIELDS];
 	std::string** data = new std::string*[FIELDS];
+	std::string** found = new std::string*[FIELDS];
 
 public:
-	Database();
-	Database(std::string**);
+	Table();
+	Table(std::string**);
 
-	//void read(const char *);
+	~Table();
+
 	void read(const std::string &);
-	std::ostream& write(std::ostream &);
+	std::ostream& operator<<(std::ostream &);
 
 	void sort(char);
-	std::string* search(const std::string &);
+	//std::string* search(const std::string &);
+
+	void search(const std::string &);
 private:
 
 	std::string* split(const std::string &, char);
 	void swap(std::string*, std::string*);
+
+	void bsearch(const std::string &, int, int, int);
 };

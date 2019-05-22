@@ -11,11 +11,21 @@
 
 #include "Database.h"
 
+std::string prompt();
+
 int main(int argc, char *argv[]) {
-	Database data;
+	Table data;
 	//data.read( argv[1] );
 
-	data.write(std::cout);
+	// TODO determine why this gives an error
+	//std::cout << data.search( prompt() ) << std::endl;
 
 	return 0;
+}
+
+std::string prompt() {
+	std::cout << "Enter a search term: ";
+	std::string find;
+	std::cin >> find;
+	return find;
 }
