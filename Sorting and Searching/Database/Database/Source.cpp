@@ -9,23 +9,45 @@
 #include <iostream>
 #include <cassert>
 
-#include "Database.h"
+#include "Table.h"
 
-std::string prompt();
+using namespace std;
+
+bool prompt();
+string get_string();
 
 int main(int argc, char *argv[]) {
 	Table data;
-	//data.read( argv[1] );
+	data.read( argv[1] );
 
-	// TODO determine why this gives an error
-	//std::cout << data.search( prompt() ) << std::endl;
+    bool cont = true;
+
+    do {
+        cont = prompt();
+        if ( cont ) {
+            data.search( get_string() );
+            data.write( cout );
+        }
+    } while ( cont );
 
 	return 0;
 }
 
-std::string prompt() {
-	std::cout << "Enter a search term: ";
-	std::string find;
-	std::cin >> find;
+bool prompt() {
+    cout << "Would you like to search? (Y/N) ";
+    string ans;
+    cin >> ans;
+    if ( ans[0] == 'y' || ans[0] == 'Y' ) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+string get_string() {
+	cout << "Enter a search term: ";
+	string find;
+	cin >> find;
 	return find;
 }
