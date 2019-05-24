@@ -67,12 +67,26 @@ void Table::read(const string &file) {
 	string buffer;
     string *person;
 
+    int line_count = 0;
+
+    // reads the length of the file to determine how much space will be needed
     while ( !input.eof() ) {
         getline( input, buffer );
-        person = split( buffer, ',' );
-        //data.push_back( person );
-        // TODO implement how the 'data' array will be sized and store its info
+        line_count++;
     }
+
+    // updates the usable size of 'data'
+    size = line_count;
+    data = new string*[size];
+
+    // creates an empty slot for each needed line, then fills it
+    for ( int i = 0; i < size; i++ ) {
+        data[i] = new string[FIELDS];
+
+        getline( input, buffer );
+        data[i] = split( buffer, ',' );
+    }
+
 }
 
 ostream& Table::write( ostream &out ) {

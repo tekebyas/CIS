@@ -73,10 +73,10 @@ public:
 
     /*
         Sorts the contained data based on a switch
-        @param delim = the switch to sort by ('f' for first, 'l' for last
+        @param field = the switch to sort by ('f' for first, 'l' for last
             'n' for number)
     */
-    void sort( char delim );
+    void sort( char field );
 
     /*
         Populates a vector with all related searches to the given string
