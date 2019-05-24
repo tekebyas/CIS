@@ -7,7 +7,6 @@
 */
 
 #include <iostream>
-#include <cassert>
 
 #include "Table.h"
 

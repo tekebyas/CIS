@@ -21,15 +21,20 @@
 
 using namespace std;
 
-const int FIELDS = 3;
+const int FIELDS = 4;
+const int MAX_SPREAD = 21;  // the max amount of values to return from search
 
-const int FIRST_NAME_POS = 0;
-const int LAST_NAME_POS = 1;
-const int NUMBER_POS = 2;
+const int ID_POS = 0;
+const int FIRST_NAME_POS = 1;
+const int LAST_NAME_POS = 2;
+const int NUMBER_POS = 3;
 
 class Table {
-    vector<string*> data;
-    vector<string*> found;
+    string **data;
+    int size = 0;
+
+    string **found;
+    int amount_found;
 
 public:
     /*
@@ -41,10 +46,16 @@ public:
         Constructor for creating a filled Table
         @param table = the matrix of data to use
     */
-    Table( vector<string*> table );
+    Table( string **table );
 
     /*
-        Deletes all pointers in data and found
+        Constructor for creating a Table and filling it automatically with a file
+        @param file = the file to read
+    */
+    Table( const string &file );
+
+    /*
+        Frees space used by 'data' and 'found'
     */
     ~Table();
 
@@ -76,6 +87,16 @@ public:
 private:
 
     /*
+        Prepares the object for use - abstracted into a function to reduce copied code
+    */
+    void prep_found();
+
+    /*
+        Resets 'found' for reuse
+    */
+    void reset_found();
+
+    /*
         Splits a string based on a character to delimit with
         @param line  = the line to split
         @param delim = where to split the line
@@ -105,5 +126,14 @@ private:
         @param find   = the string to search for
         @return         true only if the two strings have the same starting characters
     */
-    bool match_found( const string &person, const string &find );
+    bool partial_match_found( const string &person, const string &find );
+
+    /*
+        Scans nearby positions to determine if any of them are related
+        @param find = the string to find
+        @param low  = the lower limit of where to search
+        @param high = the upper limit of where to search
+        @param pos  = the field to check
+    */
+    void scan_near( const string &find, int low, int high, int pos );
 };
