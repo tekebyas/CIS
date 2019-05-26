@@ -37,6 +37,7 @@ Table::~Table() {
     delete[] data;
 
     for ( int i = 0; i < MAX_SPREAD; i++ ) {
+        found[i] = nullptr;
         delete[] found[i];
     }
     delete[] found;
@@ -53,6 +54,7 @@ void Table::prep_found() {
 
 void Table::reset_found() {
     for ( int i = 0; i < MAX_SPREAD; i++ ) {
+        found[i] = nullptr;
         delete[] found[i];
     }
     delete[] found;
@@ -65,7 +67,6 @@ void Table::read(const string &file) {
     assert( input.is_open() );
 
 	string buffer;
-    string *person;
 
     int line_count = 0;
 
@@ -74,6 +75,12 @@ void Table::read(const string &file) {
         getline( input, buffer );
         line_count++;
     }
+
+    // resets the state of 'input' to be read again
+    // after the line count of the file is determined
+    input.close();
+    input.open(file);
+    assert( input.is_open() );
 
     // updates the usable size of 'data'
     size = line_count;
@@ -94,22 +101,65 @@ ostream& Table::write( ostream &out ) {
 		out << "Name: " << found[i][LAST_NAME_POS] << ", " << found[i][FIRST_NAME_POS]
 			<< "\nPhone Number: " << found[i][NUMBER_POS] << "\n\n";
 	}
-	return out;
+    return out;
 }
 
-void Table::sort(char field) {
-	int pos;
+void Table::sort( char field ) {
+    int pos;
 
     if ( field == 'n' )
-		pos = NUMBER_POS;
+        pos = NUMBER_POS;
     else if ( field == 'f' )
-		pos = FIRST_NAME_POS;
-	else
-		pos = LAST_NAME_POS;
+        pos = FIRST_NAME_POS;
+    else
+        pos = LAST_NAME_POS;
 
-    for ( int i = 1; i < size; i++ )
-        if ( data[i][pos] < data[i - 1][pos] )
-            swap( data[i], data[i - 1] );
+    string **work = new string*[size];
+    for ( int i = 0; i < size; i++ )
+        work[i] = new string[FIELDS];
+
+    copy_array( data, 0, size - 1, work );
+
+    merge_sort( work, 0, size - 1, pos, data );
+
+    for ( int i = 0; i < size; i++ ) {
+        work[i] = nullptr;
+        delete[] work[i];
+    }
+    delete[] work;
+}
+
+void Table::merge_sort( string **data, int low, int high, int pos, string **work ) {
+    if ( high - low < 2 )
+        return;
+    else {
+        int mid = ( high + low ) / 2;
+        merge_sort( work, low, mid, pos, data );
+        merge_sort( work, mid, high, pos, data );
+        merge( data, low, high, pos, work );
+    }
+}
+
+void Table::merge( string **work, int low, int high, int pos, string **data ) {
+    int mid = ( high + low ) / 2;
+    int i = low;
+    int j = mid;
+
+    for ( int k = low; k < high; k++ ) {
+        if ( i < mid && ( work[i][pos] < work[j][pos] || j >= high ) ) {
+            data[k] = work[i];
+            i++;
+        }
+        else {
+            data[k] = work[j];
+            j++;
+        }
+    }
+}
+
+void Table::copy_array( string **from, int low, int high, string ** to ) {
+    for ( int i = low; i < high; i++ )
+        to[i] = from[i];
 }
 
 void Table::search(const string &find) {
@@ -119,14 +169,14 @@ void Table::search(const string &find) {
 	int c = find[0];
 
 	if (c > 47 && c < 58) {
-		sort('n');
-		bsearch(find, 0, size, NUMBER_POS);
+		Table::sort('n');
+		bsearch(find, 0, size - 1, NUMBER_POS);
 	}
 	else {
-		sort('f');
-		bsearch(find, 0, size, FIRST_NAME_POS);
-		sort('l');
-		bsearch(find, 0, size, LAST_NAME_POS);
+		Table::sort('f');
+		bsearch(find, 0, size - 1, FIRST_NAME_POS);
+		Table::sort('l');
+		bsearch(find, 0, size - 1, LAST_NAME_POS);
 	}
 }
 
@@ -167,8 +217,8 @@ void Table::bsearch( const string &find, int low, int high, int pos ) {
     }
 
     if ( partial_match_found( data[mid][pos], find ) ) {
-        found[amount_found] = data[mid];
-        amount_found++;
+//      found[amount_found] = data[mid];
+//      amount_found++;
         scan_near( find, low, high, pos );
 	}
 	else if (data[mid][pos] > find) {

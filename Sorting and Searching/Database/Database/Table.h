@@ -110,6 +110,37 @@ private:
     void swap( string* first, string* second );
 
     /*
+        Splits data recursively, sorting each half, to be sorted and merged together
+        @param data = the array to be sorted
+        @param low  = the lower limit of where to sort
+        @param high = the upper limit of where to sort
+        @param pos  = the field to check against
+        @param work = the work array used
+    */
+    void merge_sort( string **data, int low, int high, int pos, string **work );
+
+    /*
+        Merges data, zipping them together in order
+        @param work = the work array used
+        @param low  = the lower limit of where to sort
+        @param high = the upper limit of where to sort
+        @param pos  = the field to check against
+        @param data = the array to be copied into
+    */
+    void merge( string **work, int low, int high, int pos, string **data );
+
+    /*
+        Copies one array into another based on the range given
+        @param from = the array to copy from
+        @param low  = the lower limit of where to copy
+        @param high = the upper limit of where to copy
+        @param to   = the array to copy to
+
+        NOTE : the arrays must have the same available indices
+    */
+    void copy_array( string **from, int low, int high, string ** to );
+
+    /*
         Does a binary search for a string in the contained 'data' vector
         @param find = the string to find
         @param low  = the lower limit of where to search
