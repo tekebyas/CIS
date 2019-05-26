@@ -36,7 +36,12 @@ class Table {
     string **found;
     int amount_found;
 
+    // -----------------------------------------------------------------
+
+    // Setup Functions
+
 public:
+ 
     /*
         Constructor for a blank Table to be filled with the read function
     */
@@ -59,31 +64,6 @@ public:
     */
     ~Table();
 
-    /*
-        Reads a file for input
-        @param file = the file to read
-    */
-    void read( const string &file );
-
-    /*
-        Writes to a stream or file
-        @param out = where to write to
-    */
-    ostream& write( ostream &out );
-
-    /*
-        Sorts the contained data based on a switch
-        @param field = the switch to sort by ('f' for first, 'l' for last
-            'n' for number)
-    */
-    void sort( char field );
-
-    /*
-        Populates a vector with all related searches to the given string
-        @param find = the string to find
-        @return       void because the 'found' vector is self contained
-    */
-    void search( const string &find );
 private:
 
     /*
@@ -96,6 +76,20 @@ private:
     */
     void reset_found();
 
+    // -----------------------------------------------------------------
+
+    // Input Functions
+
+public:
+
+    /*
+        Reads a file for input
+        @param file = the file to read
+    */
+    void read( const string &file );
+
+private:
+
     /*
         Splits a string based on a character to delimit with
         @param line  = the line to split
@@ -103,6 +97,21 @@ private:
         @return        an array of the found data
     */
     string* split( const string &line, char delim );
+
+    // -----------------------------------------------------------------
+
+    // Sorting Functions
+
+public:
+
+    /*
+        Sorts the contained data based on a switch
+        @param field = the switch to sort by ('f' for first, 'l' for last
+            'n' for number)
+    */
+    void sort( char field );
+
+private:
 
     /*
         Swaps the position of two arrays in the internal vector
@@ -140,6 +149,21 @@ private:
     */
     void copy_array( string **from, int low, int high, string ** to );
 
+    // -----------------------------------------------------------------
+
+    // Searching Functions
+
+public:
+
+    /*
+        Populates a vector with all related searches to the given string
+        @param find = the string to find
+        @return       void because the 'found' vector is self contained
+    */
+    void search( const string &find );
+
+private:
+
     /*
         Does a binary search for a string in the contained 'data' vector
         @param find = the string to find
@@ -167,4 +191,36 @@ private:
         @param pos  = the field to check
     */
     void scan_near( const string &find, int low, int high, int pos );
+
+    // -----------------------------------------------------------------
+    
+    // Output Functions
+
+public:
+
+    /*
+        Writes to a stream or file
+        @param out = where to write to
+    */
+    ostream& write( ostream &out );
+
+    /*
+        Draws the Table in a way that looks more like a Table than a list
+        @param out = the stream or file to write to
+    */
+    void draw( ostream& out );
+
+private:
+
+    /*
+        Draws a horizontal bar to the given stream
+        @param out     = the stream to draw to
+        @param left    = the character to use on the left column
+        @param fill    = the character to fill the middle with
+        @param right   = the character to use on the right column
+        @param spacing = the amount of spacing needed
+    */
+    void draw_horizontal_bar( ostream &out, char left, char fill, char right, int spacing[] );
+
+    // -----------------------------------------------------------------
 };

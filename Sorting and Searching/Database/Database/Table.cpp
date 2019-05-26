@@ -1,4 +1,4 @@
-/*
+﻿/*
 	File: Database.cpp
 	Author: Teke Byas
 	Email: tekeb6687@student.vvc.edu
@@ -8,10 +8,15 @@
 
 #include <fstream>
 #include <cassert>
+#include <iomanip>
 
 #include "Table.h"
 
 using namespace std;
+
+// -----------------------------------------------------------------
+
+// Setup Functions
 
 Table::Table() {
 	// with the read function implemented,
@@ -61,6 +66,10 @@ void Table::reset_found() {
     prep_found();
 }
 
+// -----------------------------------------------------------------
+
+// Input Functions
+
 void Table::read(const string &file) {
 	ifstream input( file );
 
@@ -96,13 +105,32 @@ void Table::read(const string &file) {
 
 }
 
-ostream& Table::write( ostream &out ) {
-    for ( int i = 0; found[i][ID_POS] != ""; i++ ) {
-		out << "Name: " << found[i][LAST_NAME_POS] << ", " << found[i][FIRST_NAME_POS]
-			<< "\nPhone Number: " << found[i][NUMBER_POS] << "\n\n";
+string* Table::split(const string &line, char delim) {
+    string *person = new string[FIELDS];
+
+	int count = 0;
+	string temp = "";
+
+	for (int i = 0; i < line.size(); i++) {
+		if (line[i] == delim) {
+			person[count] = temp;
+            count++;
+			temp = "";
+		}
+		else
+			temp += line[i];
 	}
-    return out;
+
+    if ( !temp.empty() ) {
+        person[count] = temp;
+    }
+
+	return person;
 }
+
+// -----------------------------------------------------------------
+
+// Sorting Functions
 
 void Table::sort( char field ) {
     int pos;
@@ -127,6 +155,12 @@ void Table::sort( char field ) {
         delete[] work[i];
     }
     delete[] work;
+}
+
+void Table::swap(string *first, string *second) {
+	string *temp = first;
+	first = second;
+	second = temp;
 }
 
 void Table::merge_sort( string **data, int low, int high, int pos, string **work ) {
@@ -162,6 +196,10 @@ void Table::copy_array( string **from, int low, int high, string ** to ) {
         to[i] = from[i];
 }
 
+// -----------------------------------------------------------------
+
+// Searching Functions
+
 void Table::search(const string &find) {
     if ( found[0][0] != "" )
         reset_found();
@@ -180,35 +218,6 @@ void Table::search(const string &find) {
 	}
 }
 
-string* Table::split(const string &line, char delim) {
-    string *person = new string[FIELDS];
-
-	int count = 0;
-	string temp = "";
-
-	for (int i = 0; i < line.size(); i++) {
-		if (line[i] == delim) {
-			person[count] = temp;
-            count++;
-			temp = "";
-		}
-		else
-			temp += line[i];
-	}
-
-    if ( !temp.empty() ) {
-        person[count] = temp;
-    }
-
-	return person;
-}
-
-void Table::swap(string *first, string *second) {
-	string *temp = first;
-	first = second;
-	second = temp;
-}
-
 void Table::bsearch( const string &find, int low, int high, int pos ) {
     int mid = ( high + low ) / 2;
 
@@ -217,8 +226,6 @@ void Table::bsearch( const string &find, int low, int high, int pos ) {
     }
 
     if ( partial_match_found( data[mid][pos], find ) ) {
-//      found[amount_found] = data[mid];
-//      amount_found++;
         scan_near( find, low, high, pos );
 	}
 	else if (data[mid][pos] > find) {
@@ -256,4 +263,62 @@ void Table::scan_near( const string &find, int low, int high, int pos ) {
             }
         }
     }
+}
+
+// -----------------------------------------------------------------
+
+// Output Functions
+
+ostream& Table::write( ostream &out ) {
+    for ( int i = 0; i < amount_found; i++ ) {
+        for ( int j = 0; j < FIELDS; j++ ) {
+            out << found[i][j] << ',';
+        }
+        out << '\n';
+    }
+    return out;
+}
+
+void Table::draw( ostream& out ) {
+    // initialize an array of integers to get the width needed for every field
+    int spacing[FIELDS];
+    for ( int i = 0; i < FIELDS; i++ )
+        spacing[i] = 0;
+
+    // determine the maximum space needed for every field
+    for ( int i = 0; i < amount_found; i++ )
+        for ( int j = 0; j < FIELDS; j++ )
+            if ( spacing[j] < found[i][j].size() )
+                spacing[j] = found[i][j].size();
+
+    draw_horizontal_bar( out, '*', '-', '*', spacing );
+
+    // prints the stored data
+    for ( int i = 0; i < amount_found; i++ ) {
+        out << "| ";
+        for ( int j = 0; j < FIELDS; j++ ) {
+            out << setw( spacing[j] );
+            out << found[i][j] << '|';
+        }
+        out << '\n';
+
+        if ( i < amount_found - 1 ) {
+            draw_horizontal_bar( out, '|', '-', '|', spacing );
+        }
+        else {
+            draw_horizontal_bar( out, '*','-', '*', spacing );
+        }
+    }
+    out << '\n';
+}
+
+void Table::draw_horizontal_bar( ostream &out, char left, char fill, char right, int spacing[] ) {
+    out << left;
+    for ( int i = 0; i < FIELDS; i++ ) {
+        for ( int j = 0; j <= spacing[i]; j++ ) {
+            out << fill;
+        }
+    }
+    out << right;
+    out << '\n';
 }

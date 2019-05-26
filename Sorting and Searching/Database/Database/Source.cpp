@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
         cont = prompt();
         if ( cont ) {
             data.search( get_string() );
-            data.write( cout );
+            data.draw( cout );
         }
     } while ( cont );
 
