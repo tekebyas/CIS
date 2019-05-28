@@ -21,17 +21,12 @@
 
 using namespace std;
 
-const int FIELDS = 4;
-const int MAX_SPREAD = 21;  // the max amount of values to return from search
-
-const int ID_POS = 0;
-const int FIRST_NAME_POS = 1;
-const int LAST_NAME_POS = 2;
-const int NUMBER_POS = 3;
-
 class Table {
+    const int MAX_SPREAD = 21;  // the max amount of values to return from search
+
     string **data;
     int size = 0;
+    int fields = 0;
 
     string **found;
     int amount_found;
@@ -109,7 +104,7 @@ public:
         @param field = the switch to sort by ('f' for first, 'l' for last
             'n' for number)
     */
-    void sort( char field );
+    void sort( int pos );
 
 private:
 

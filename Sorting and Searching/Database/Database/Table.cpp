@@ -53,7 +53,7 @@ void Table::prep_found() {
     found = new string*[MAX_SPREAD];
     
     for ( int i = 0; i < MAX_SPREAD; i++ ) {
-        found[i] = new string[FIELDS];
+        found[i] = new string[fields];
     }
 }
 
@@ -79,7 +79,7 @@ void Table::read(const string &file) {
 
     int line_count = 0;
 
-    // reads the length of the file to determine how much space will be needed
+    // determines how many rows are needed
     while ( !input.eof() ) {
         getline( input, buffer );
         line_count++;
@@ -91,13 +91,19 @@ void Table::read(const string &file) {
     input.open(file);
     assert( input.is_open() );
 
+    // determines how many columns are needed
+    getline( input, buffer );
+    for ( int i = 0; i < buffer.size(); i++ )
+        if ( buffer[i] == ',' )
+            fields++;
+
     // updates the usable size of 'data'
-    size = line_count;
-    data = new string*[size];
+    size = line_count - 1;    // - 1 because the first line is a header
+    data = new string*[size]; // and is only needed for reading the table
 
     // creates an empty slot for each needed line, then fills it
     for ( int i = 0; i < size; i++ ) {
-        data[i] = new string[FIELDS];
+        data[i] = new string[fields];
 
         getline( input, buffer );
         data[i] = split( buffer, ',' );
@@ -106,7 +112,7 @@ void Table::read(const string &file) {
 }
 
 string* Table::split(const string &line, char delim) {
-    string *person = new string[FIELDS];
+    string *person = new string[fields];
 
 	int count = 0;
 	string temp = "";
@@ -132,24 +138,19 @@ string* Table::split(const string &line, char delim) {
 
 // Sorting Functions
 
-void Table::sort( char field ) {
-    int pos;
-
-    if ( field == 'n' )
-        pos = NUMBER_POS;
-    else if ( field == 'f' )
-        pos = FIRST_NAME_POS;
-    else
-        pos = LAST_NAME_POS;
-
+void Table::sort( int pos ) {
+    // a work array for storing temporary data
     string **work = new string*[size];
     for ( int i = 0; i < size; i++ )
-        work[i] = new string[FIELDS];
+        work[i] = new string[fields];
 
+    // makes work a copy of data
     copy_array( data, 0, size - 1, work );
 
+    // sorts work into data
     merge_sort( work, 0, size - 1, pos, data );
 
+    // delete the space needed by the work array
     for ( int i = 0; i < size; i++ ) {
         work[i] = nullptr;
         delete[] work[i];
@@ -179,6 +180,8 @@ void Table::merge( string **work, int low, int high, int pos, string **data ) {
     int i = low;
     int j = mid;
 
+    // walks up both halves of the sorted array (each half was sorted independently)
+    // and zips the two arrays together in sorted order
     for ( int k = low; k < high; k++ ) {
         if ( i < mid && ( work[i][pos] < work[j][pos] || j >= high ) ) {
             data[k] = work[i];
@@ -204,44 +207,30 @@ void Table::search(const string &find) {
     if ( found[0][0] != "" )
         reset_found();
 
-	int c = find[0];
-
-	if (c > 47 && c < 58) {
-		Table::sort('n');
-		bsearch(find, 0, size - 1, NUMBER_POS);
-	}
-	else {
-		Table::sort('f');
-		bsearch(find, 0, size - 1, FIRST_NAME_POS);
-		Table::sort('l');
-		bsearch(find, 0, size - 1, LAST_NAME_POS);
-	}
+    for ( int pos = 0; pos < fields; pos++ ) {
+        Table::sort( pos );
+        bsearch( find, 0, size - 1, pos );
+    }
 }
 
 void Table::bsearch( const string &find, int low, int high, int pos ) {
     int mid = ( high + low ) / 2;
 
-    if ( mid > high || mid < low ) {
+    if ( mid > high || mid < low )
         return;
-    }
 
-    if ( partial_match_found( data[mid][pos], find ) ) {
+    if ( partial_match_found( data[mid][pos], find ) )
         scan_near( find, low, high, pos );
-	}
-	else if (data[mid][pos] > find) {
+	else if (data[mid][pos] > find)
 		bsearch(find, low, mid - 1, pos);
-	}
-	else if (data[mid][pos] < find) {
+	else if (data[mid][pos] < find)
 		bsearch(find, mid + 1, high, pos);
-	}
 }
 
 bool Table::partial_match_found( const string &person, const string &find ) {
-    for ( int i = 0; i < find.size(); i++ ) {
-        if ( find[i] != person[i] ) {
+    for ( int i = 0; i < find.size(); i++ )
+        if ( find[i] != person[i] )
             return false;
-        }
-    }
     return true;
 }
 
@@ -271,9 +260,8 @@ void Table::scan_near( const string &find, int low, int high, int pos ) {
 
 ostream& Table::write( ostream &out ) {
     for ( int i = 0; i < amount_found; i++ ) {
-        for ( int j = 0; j < FIELDS; j++ ) {
+        for ( int j = 0; j < fields; j++ )
             out << found[i][j] << ',';
-        }
         out << '\n';
     }
     return out;
@@ -281,13 +269,13 @@ ostream& Table::write( ostream &out ) {
 
 void Table::draw( ostream& out ) {
     // initialize an array of integers to get the width needed for every field
-    int spacing[FIELDS];
-    for ( int i = 0; i < FIELDS; i++ )
+    int *spacing = new int[fields];
+    for ( int i = 0; i < fields; i++ )
         spacing[i] = 0;
 
     // determine the maximum space needed for every field
     for ( int i = 0; i < amount_found; i++ )
-        for ( int j = 0; j < FIELDS; j++ )
+        for ( int j = 0; j < fields; j++ )
             if ( spacing[j] < found[i][j].size() )
                 spacing[j] = found[i][j].size();
 
@@ -296,29 +284,26 @@ void Table::draw( ostream& out ) {
     // prints the stored data
     for ( int i = 0; i < amount_found; i++ ) {
         out << "| ";
-        for ( int j = 0; j < FIELDS; j++ ) {
+        for ( int j = 0; j < fields; j++ ) {
             out << setw( spacing[j] );
             out << found[i][j] << '|';
         }
         out << '\n';
 
-        if ( i < amount_found - 1 ) {
+        if ( i < amount_found - 1 )
             draw_horizontal_bar( out, '|', '-', '|', spacing );
-        }
-        else {
+        else
             draw_horizontal_bar( out, '*','-', '*', spacing );
-        }
     }
     out << '\n';
+    delete[] spacing;
 }
 
 void Table::draw_horizontal_bar( ostream &out, char left, char fill, char right, int spacing[] ) {
     out << left;
-    for ( int i = 0; i < FIELDS; i++ ) {
-        for ( int j = 0; j <= spacing[i]; j++ ) {
+    for ( int i = 0; i < fields; i++ )
+        for ( int j = 0; j <= spacing[i]; j++ )
             out << fill;
-        }
-    }
     out << right;
     out << '\n';
 }
